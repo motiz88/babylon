@@ -60,7 +60,7 @@ pp.toAssignable = function (node, isBinding, contextDescription) {
 
       default: {
         const message = "Invalid left-hand side" +
-          (contextDescription ? " in " + contextDescription : " expression");
+          (contextDescription ? " in " + contextDescription : /* istanbul ignore next */ "expression");
         this.raise(node.start, message);
       }
     }
@@ -260,8 +260,8 @@ pp.checkLVal = function (expr, isBinding, checkClashes, contextDescription) {
       break;
 
     default: {
-      const message = (isBinding ? "Binding invalid" : "Invalid") + " left-hand side" +
-        (contextDescription ? " in " + contextDescription : " expression");
+      const message = (isBinding ? /* istanbul ignore next */ "Binding invalid" : "Invalid") + " left-hand side" +
+        (contextDescription ? " in " + contextDescription : /* istanbul ignore next */ "expression");
       this.raise(expr.start, message);
     }
   }
