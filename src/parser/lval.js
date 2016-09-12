@@ -58,8 +58,11 @@ pp.toAssignable = function (node, isBinding, contextDescription) {
       case "MemberExpression":
         if (!isBinding) break;
 
-      default:
-        this.raise(node.start, "Invalid left-hand side" + (contextDescription ? (" in " + contextDescription) : " expression"));
+      default: {
+        const message = "Invalid left-hand side" +
+          (contextDescription ? " in " + contextDescription : " expression");
+        this.raise(node.start, message);
+      }
     }
   }
   return node;
@@ -256,7 +259,10 @@ pp.checkLVal = function (expr, isBinding, checkClashes, contextDescription) {
       this.checkLVal(expr.argument, isBinding, checkClashes, "rest element");
       break;
 
-    default:
-      this.raise(expr.start, (isBinding ? "Binding invalid" : "Invalid") + " left-hand side" + (contextDescription ? (" in " + contextDescription) : " expression"));
+    default: {
+      const message = (isBinding ? "Binding invalid" : "Invalid") + " left-hand side" +
+        (contextDescription ? " in " + contextDescription : " expression");
+      this.raise(expr.start, message);
+    }
   }
 };
