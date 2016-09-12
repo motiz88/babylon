@@ -9,7 +9,7 @@ const pp = Parser.prototype;
 // Convert existing expression atom to assignable pattern
 // if possible.
 
-pp.toAssignable = function (node, isBinding) {
+pp.toAssignable = function (node, isBinding, contextDescription) {
   if (node) {
     switch (node.type) {
       case "Identifier":
@@ -28,13 +28,13 @@ pp.toAssignable = function (node, isBinding) {
               this.raise(prop.key.start, "Object pattern can't contain methods");
             }
           } else {
-            this.toAssignable(prop, isBinding);
+            this.toAssignable(prop, isBinding, "object destructuring pattern");
           }
         }
         break;
 
       case "ObjectProperty":
-        this.toAssignable(node.value, isBinding);
+        this.toAssignable(node.value, isBinding, contextDescription);
         break;
 
       case "SpreadProperty":
@@ -43,7 +43,7 @@ pp.toAssignable = function (node, isBinding) {
 
       case "ArrayExpression":
         node.type = "ArrayPattern";
-        this.toAssignableList(node.elements, isBinding);
+        this.toAssignableList(node.elements, isBinding, contextDescription);
         break;
 
       case "AssignmentExpression":
@@ -59,7 +59,7 @@ pp.toAssignable = function (node, isBinding) {
         if (!isBinding) break;
 
       default:
-        this.raise(node.start, "Assigning to rvalue");
+        this.raise(node.start, "Invalid left-hand side" + (contextDescription ? (" in " + contextDescription) : " expression"));
     }
   }
   return node;
@@ -67,7 +67,7 @@ pp.toAssignable = function (node, isBinding) {
 
 // Convert list of expression atoms to binding list.
 
-pp.toAssignableList = function (exprList, isBinding) {
+pp.toAssignableList = function (exprList, isBinding, contextDescription) {
   let end = exprList.length;
   if (end) {
     let last = exprList[end - 1];
@@ -76,7 +76,7 @@ pp.toAssignableList = function (exprList, isBinding) {
     } else if (last && last.type === "SpreadElement") {
       last.type = "RestElement";
       let arg = last.argument;
-      this.toAssignable(arg, isBinding);
+      this.toAssignable(arg, isBinding, contextDescription);
       if (arg.type !== "Identifier" && arg.type !== "MemberExpression" && arg.type !== "ArrayPattern") {
         this.unexpected(arg.start);
       }
@@ -85,7 +85,7 @@ pp.toAssignableList = function (exprList, isBinding) {
   }
   for (let i = 0; i < end; i++) {
     let elt = exprList[i];
-    if (elt) this.toAssignable(elt, isBinding);
+    if (elt) this.toAssignable(elt, isBinding, contextDescription);
   }
   return exprList;
 };
@@ -198,7 +198,7 @@ pp.parseMaybeDefault = function (startPos, startLoc, left) {
 // Verify that a node is an lval — something that can be assigned
 // to.
 
-pp.checkLVal = function (expr, isBinding, checkClashes) {
+pp.checkLVal = function (expr, isBinding, checkClashes, contextDescription) {
   switch (expr.type) {
     case "Identifier":
       if (this.state.strict && (reservedWords.strictBind(expr.name) || reservedWords.strict(expr.name))) {
@@ -234,26 +234,29 @@ pp.checkLVal = function (expr, isBinding, checkClashes) {
     case "ObjectPattern":
       for (let prop of (expr.properties: Array<Object>)) {
         if (prop.type === "ObjectProperty") prop = prop.value;
-        this.checkLVal(prop, isBinding, checkClashes);
+        this.checkLVal(prop, isBinding, checkClashes, "object destructuring pattern");
       }
       break;
 
     case "ArrayPattern":
       for (let elem of (expr.elements: Array<Object>)) {
-        if (elem) this.checkLVal(elem, isBinding, checkClashes);
+        if (elem) this.checkLVal(elem, isBinding, checkClashes, "array destructuring pattern");
       }
       break;
 
     case "AssignmentPattern":
-      this.checkLVal(expr.left, isBinding, checkClashes);
+      this.checkLVal(expr.left, isBinding, checkClashes, "assignment pattern");
       break;
 
     case "RestProperty":
+      this.checkLVal(expr.argument, isBinding, checkClashes, "rest property");
+      break;
+
     case "RestElement":
-      this.checkLVal(expr.argument, isBinding, checkClashes);
+      this.checkLVal(expr.argument, isBinding, checkClashes, "rest element");
       break;
 
     default:
-      this.raise(expr.start, (isBinding ? "Binding" : "Assigning to") + " rvalue");
+      this.raise(expr.start, (isBinding ? "Binding invalid" : "Invalid") + " left-hand side" + (contextDescription ? (" in " + contextDescription) : " expression"));
   }
 };
