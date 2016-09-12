@@ -260,7 +260,8 @@ pp.checkLVal = function (expr, isBinding, checkClashes, contextDescription) {
       break;
 
     default: {
-      const message = (isBinding ? /* istanbul ignore next */ "Binding invalid" : "Invalid") + " left-hand side" +
+      const message = (isBinding ? /* istanbul ignore next */ "Binding invalid" : "Invalid") +
+        " left-hand side" +
         (contextDescription ? " in " + contextDescription : /* istanbul ignore next */ "expression");
       this.raise(expr.start, message);
     }
