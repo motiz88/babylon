@@ -1,0 +1,1 @@
+function foo(promise) { x(await promise); }

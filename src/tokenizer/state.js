@@ -45,6 +45,9 @@ export default class State {
 
     this.exportedIdentifiers = [];
 
+    this.potentialIllegalAwaitAt = -1;
+    this.awaitContext = [];
+
     return this;
   }
 
@@ -124,6 +127,13 @@ export default class State {
   // Names of exports store. `default` is stored as a name for both
   // `export default foo;` and `export { foo as default };`.
   exportedIdentifiers: Array<string>;
+
+  // Used to signify the start of an AwaitExpression in a non-async context.
+  potentialIllegalAwaitAt: number;
+
+  // Used in conjunction with potentialIllegalAwaitAt to properly attribute
+  // parse errors to uses of `await` in non-async contexts.
+  awaitContext: Array<number>;
 
   curPosition() {
     return new Position(this.curLine, this.pos - this.lineStart);

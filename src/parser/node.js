@@ -33,12 +33,21 @@ class Node {
   }
 }
 
+function pushNodeStart (node) {
+  this.state.awaitContext.push(node.start);
+  return node;
+}
+
+function popNode () {
+  return this.state.awaitContext.pop();
+}
+
 pp.startNode = function () {
-  return new Node(this.state.start, this.state.startLoc, this.filename);
+  return pushNodeStart.call(this, new Node(this.state.start, this.state.startLoc, this.filename));
 };
 
 pp.startNodeAt = function (pos, loc) {
-  return new Node(pos, loc, this.filename);
+  return pushNodeStart.call(this, new Node(pos, loc, this.filename));
 };
 
 function finishNodeAt(node, type, pos, loc) {
@@ -46,6 +55,7 @@ function finishNodeAt(node, type, pos, loc) {
   node.end = pos;
   node.loc.end = loc;
   this.processComment(node);
+  popNode.call(this);
   return node;
 }
 

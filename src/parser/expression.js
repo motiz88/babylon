@@ -260,7 +260,9 @@ pp.parseMaybeUnary = function (refShorthandDefaultPos) {
 pp.parseExprSubscripts = function (refShorthandDefaultPos) {
   let startPos = this.state.start, startLoc = this.state.startLoc;
   let potentialArrowAt = this.state.potentialArrowAt;
+  this.state.awaitContext.push(this.state.start);
   let expr = this.parseExprAtom(refShorthandDefaultPos);
+  this.state.awaitContext.pop();
 
   if (expr.type === "ArrowFunctionExpression" && expr.start === potentialArrowAt) {
     return expr;
@@ -282,24 +284,30 @@ pp.parseSubscripts = function (base, startPos, startLoc, noCalls) {
       return this.parseSubscripts(this.finishNode(node, "BindExpression"), startPos, startLoc, noCalls);
     } else if (this.eat(tt.dot)) {
       let node = this.startNodeAt(startPos, startLoc);
+      this.state.awaitContext.push(this.state.start);
       node.object = base;
       node.property = this.parseIdentifier(true);
       node.computed = false;
+      this.state.awaitContext.pop();
       base = this.finishNode(node, "MemberExpression");
     } else if (this.eat(tt.bracketL)) {
       let node = this.startNodeAt(startPos, startLoc);
+      this.state.awaitContext.push(this.state.start);
       node.object = base;
       node.property = this.parseExpression();
       node.computed = true;
       this.expect(tt.bracketR);
+      this.state.awaitContext.pop();
       base = this.finishNode(node, "MemberExpression");
     } else if (!noCalls && this.match(tt.parenL)) {
       let possibleAsync = this.state.potentialArrowAt === base.start && base.type === "Identifier" && base.name === "async" && !this.canInsertSemicolon();
       this.next();
 
       let node = this.startNodeAt(startPos, startLoc);
+      this.state.awaitContext.push(this.state.start);
       node.callee = base;
       node.arguments = this.parseCallExpressionArguments(tt.parenR, possibleAsync);
+      this.state.awaitContext.pop();
       base = this.finishNode(node, "CallExpression");
 
       if (possibleAsync && this.shouldParseAsyncArrow()) {
@@ -402,6 +410,8 @@ pp.parseExprAtom = function (refShorthandDefaultPos) {
       if (id.name === "await") {
         if (this.state.inAsync || this.inModule) {
           return this.parseAwait(node);
+        } else {
+          this.state.potentialIllegalAwaitAt = id.start;
         }
       } else if (id.name === "async" && this.match(tt._function) && !this.canInsertSemicolon()) {
         this.next();
@@ -546,6 +556,7 @@ pp.parseParenAndDistinguishExpression = function (startPos, startLoc, canBeArrow
 
   let val;
   this.expect(tt.parenL);
+  this.state.awaitContext.push(this.state.start);
 
   let innerStartPos = this.state.start, innerStartLoc = this.state.startLoc;
   let exprList = [], first = true;
@@ -566,6 +577,7 @@ pp.parseParenAndDistinguishExpression = function (startPos, startLoc, canBeArrow
       let spreadNodeStartPos = this.state.start, spreadNodeStartLoc = this.state.startLoc;
       spreadStart = this.state.start;
       exprList.push(this.parseParenItem(this.parseRest(), spreadNodeStartLoc, spreadNodeStartPos));
+      this.state.awaitContext.pop();
       break;
     } else {
       exprList.push(this.parseMaybeAssign(false, refShorthandDefaultPos, this.parseParenItem, refNeedsArrowPos));
@@ -575,6 +587,8 @@ pp.parseParenAndDistinguishExpression = function (startPos, startLoc, canBeArrow
   let innerEndPos = this.state.start;
   let innerEndLoc = this.state.startLoc;
   this.expect(tt.parenR);
+
+  this.state.awaitContext.pop();
 
   let arrowNode = this.startNodeAt(startPos, startLoc);
   if (canBeArrow && this.shouldParseArrow() && (arrowNode = this.parseArrow(arrowNode))) {
@@ -989,7 +1003,7 @@ pp.parseIdentifier = function (liberal) {
 
 pp.parseAwait = function (node) {
   if (!this.state.inAsync) {
-    this.unexpected();
+    this.unexpected("await can only be used in async functions");
   }
   if (this.match(tt.star)) {
     this.raise(node.start, "await* has been removed from the async functions proposal. Use Promise.all() instead.");

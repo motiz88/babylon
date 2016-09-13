@@ -79,6 +79,18 @@ pp.expect = function (type, pos) {
 
 // Raise an unexpected token error.
 
-pp.unexpected = function (pos, message = "Unexpected token") {
-  this.raise(pos != null ? pos : this.state.start, message);
+pp.unexpected = function (pos, message) {
+  pos = pos != null ? pos : this.state.start;
+  const starts = this.state.awaitContext;
+  if (
+    starts.length &&
+    (this.state.potentialIllegalAwaitAt >= starts[starts.length - 1]) &&
+    (this.state.potentialIllegalAwaitAt <= pos) &&
+    (pos >= starts[starts.length - 1])
+  ) {
+    message = "await can only be used in async functions";
+    pos = this.state.potentialIllegalAwaitAt;
+  }
+  message = message || "Unexpected token";
+  this.raise(pos, message);
 };

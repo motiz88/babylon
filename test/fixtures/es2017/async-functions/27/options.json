@@ -1,0 +1,3 @@
+{
+  "throws": "await can only be used in async functions (1:31)"
+}
