@@ -976,8 +976,15 @@ export default function (instance) {
     };
   });
 
-  // determine whether or not we're currently in the position where a class property would appear
-  instance.extend("isClassProperty", function (inner) {
+  // determine whether or not we're currently in the position where an initialized class property would appear
+  instance.extend("isInitializedClassProperty", function (inner) {
+    return function () {
+      return this.match(tt.colon) || inner.call(this);
+    };
+  });
+
+  // determine whether or not we're currently in the position where an uninitialized class property would appear
+  instance.extend("isUninitializedClassProperty", function (inner) {
     return function () {
       return this.match(tt.colon) || inner.call(this);
     };

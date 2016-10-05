@@ -618,8 +618,12 @@ pp.parseClass = function (node, isStatement, optionalId) {
   return this.finishNode(node, isStatement ? "ClassDeclaration" : "ClassExpression");
 };
 
-pp.isClassProperty = function () {
-  return this.match(tt.eq) || this.isLineTerminator();
+pp.isInitializedClassProperty = function () {
+  return this.match(tt.eq);
+};
+
+pp.isUninitializedClassProperty = function () {
+  return this.isLineTerminator();
 };
 
 pp.isClassMutatorStarter = function () {
@@ -674,7 +678,7 @@ pp.parseClassBody = function (node) {
     }
 
     if (!isGenerator) {
-      if (this.isClassProperty()) {
+      if (this.isInitializedClassProperty() || (this.isUninitializedClassProperty() && method.key.name !== "get" && method.key.name !== "set")) {
         classBody.body.push(this.parseClassProperty(method));
         continue;
       }
