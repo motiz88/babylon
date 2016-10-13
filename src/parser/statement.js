@@ -947,10 +947,14 @@ pp.checkDeclaration = function(node) {
     }
   } else if (node.type === "ArrayPattern") {
     for (let elem of node.elements) {
-      this.checkDeclaration(elem);
+      if (elem) {
+        this.checkDeclaration(elem);
+      }
     }
   } else if (node.type === "ObjectProperty") {
     this.checkDeclaration(node.value);
+  } else if (node.type === "RestElement" || node.type === "RestProperty") {
+    this.checkDeclaration(node.argument);
   } else if (node.type === "Identifier") {
     this.checkDuplicateExports(node, node.name);
   }
