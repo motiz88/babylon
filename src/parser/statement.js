@@ -623,7 +623,7 @@ pp.isInitializedClassProperty = function () {
 };
 
 pp.isUninitializedClassProperty = function () {
-  return this.isLineTerminator();
+  return this.isLineTerminator() && !this.match(tt.parenL);
 };
 
 pp.isClassMutatorStarter = function () {
