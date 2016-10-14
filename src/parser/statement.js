@@ -681,7 +681,7 @@ pp.parseClassBody = function (node) {
 
     if (!isGenerator) {
       if (this.isInitializedClassProperty() || (this.isUninitializedClassProperty() && !(isMaybeGetSet && this.match(tt.name)))) {
-        if (this.hasPlugin("classProperties")) {
+        if (this.hasPlugin("classProperties") || this.hasPlugin("flow")) {
           classBody.body.push(this.parseClassProperty(method));
           continue;
         }
