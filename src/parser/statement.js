@@ -623,7 +623,7 @@ pp.isInitializedClassProperty = function () {
 };
 
 pp.isUninitializedClassProperty = function () {
-  return this.isLineTerminator() && !this.match(tt.parenL);
+  return this.match(tt.semi) || (this.canInsertSemicolon() && !this.match(tt.parenL));
 };
 
 pp.isClassMutatorStarter = function () {
@@ -779,7 +779,9 @@ pp.parseClassProperty = function (node) {
   } else {
     node.value = null;
   }
-  this.semicolon();
+  if (!this.isLineTerminator()) {
+    this.semicolon();
+  }
   return this.finishNode(node, "ClassProperty");
 };
 
