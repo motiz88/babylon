@@ -670,7 +670,9 @@ pp.parseClassBody = function (node) {
 
     this.parsePropertyName(method);
 
-    method.static = isMaybeStatic && !this.match(tt.parenL);
+    let isMaybeGetSet = !method.computed && (method.key.name === "get" || method.key.name === "set");
+
+    method.static = isMaybeStatic && !this.match(tt.parenL) && !this.match(tt.braceR);
     if (method.static) {
       if (isGenerator) this.unexpected();
       isGenerator = this.eat(tt.star);
@@ -678,7 +680,7 @@ pp.parseClassBody = function (node) {
     }
 
     if (!isGenerator) {
-      if (this.isInitializedClassProperty() || (this.isUninitializedClassProperty() && method.key.name !== "get" && method.key.name !== "set")) {
+      if (this.isInitializedClassProperty() || (this.isUninitializedClassProperty() && !(isMaybeGetSet && this.match(tt.name)))) {
         classBody.body.push(this.parseClassProperty(method));
         continue;
       }
@@ -696,6 +698,9 @@ pp.parseClassBody = function (node) {
       this.parsePropertyName(method);
     }
 
+    // Do this again because we may have updated `method`
+    isMaybeGetSet = !method.computed && (method.key.name === "get" || method.key.name === "set");
+
     method.kind = "method";
 
     if (!method.computed) {
@@ -703,7 +708,7 @@ pp.parseClassBody = function (node) {
 
       // handle get/set methods
       // eg. class Foo { get bar() {} set bar() {} }
-      if (!isAsync && !isGenerator && !this.isClassMutatorStarter() && key.type === "Identifier" && !this.match(tt.parenL) && (key.name === "get" || key.name === "set")) {
+      if (!isAsync && !isGenerator && !this.isClassMutatorStarter() && key.type === "Identifier" && !this.match(tt.parenL) && isMaybeGetSet) {
         isGetSet = true;
         method.kind = key.name;
         key = this.parsePropertyName(method);
