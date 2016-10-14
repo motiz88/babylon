@@ -672,7 +672,7 @@ pp.parseClassBody = function (node) {
 
     let isMaybeGetSet = !method.computed && (method.key.name === "get" || method.key.name === "set");
 
-    method.static = isMaybeStatic && !this.match(tt.parenL) && !this.match(tt.braceR);
+    method.static = isMaybeStatic && !this.match(tt.parenL) && !(this.match(tt.braceR) && this.hasPlugin("classProperties"));
     if (method.static) {
       if (isGenerator) this.unexpected();
       isGenerator = this.eat(tt.star);
@@ -681,8 +681,10 @@ pp.parseClassBody = function (node) {
 
     if (!isGenerator) {
       if (this.isInitializedClassProperty() || (this.isUninitializedClassProperty() && !(isMaybeGetSet && this.match(tt.name)))) {
-        classBody.body.push(this.parseClassProperty(method));
-        continue;
+        if (this.hasPlugin("classProperties")) {
+          classBody.body.push(this.parseClassProperty(method));
+          continue;
+        }
       }
 
       if (method.key.type === "Identifier" && !method.computed && this.hasPlugin("classConstructorCall") && method.key.name === "call" && this.match(tt.name) && this.state.value === "constructor") {
