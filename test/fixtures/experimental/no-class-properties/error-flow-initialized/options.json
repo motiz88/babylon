@@ -1,0 +1,4 @@
+{
+  "plugins": ["flow"],
+  "throws": "Unexpected token (2:4)"
+}
