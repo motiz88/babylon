@@ -1,6 +1,7 @@
 import { types as tt } from "../tokenizer/types";
 import Parser from "./index";
 import { lineBreak } from "../util/whitespace";
+import * as plugins from "../plugins/directory";
 
 const pp = Parser.prototype;
 
@@ -85,4 +86,25 @@ pp.unexpected = function (pos, messageOrType = "Unexpected token") {
     messageOrType = `Unexpected token, expected ${messageOrType.label}`;
   }
   this.raise(pos != null ? pos : this.state.start, messageOrType);
+};
+
+pp.expectPlugin = function (name) {
+  if (!this.hasPlugin(name)) {
+    const pluginInfo = plugins[name];
+    const pointers = [];
+    if (pluginInfo) {
+      if (pluginInfo.babelSyntaxPlugin) {
+        pointers.push(`babel-plugin-${pluginInfo.babelSyntaxPlugin}`);
+      }
+      if (pluginInfo.babelTransformPlugins) {
+        pointers.push(...pluginInfo.babelTransformPlugins.map(
+          (shortName) => `babel-plugin-${shortName}`
+        ));
+      }
+    }
+    const leadingPointersOr = pointers.length ? ` ${pointers.join(", ")} or ` : " ";
+
+    this.unexpected(null, `This experimental syntax requires the ${name} parser plugin. `
+      + `Check out${ leadingPointersOr }the parserOpts.${name} Babel option.`);
+  }
 };

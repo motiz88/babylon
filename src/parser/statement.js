@@ -162,9 +162,7 @@ pp.parseDecorators = function (allowExport) {
 };
 
 pp.parseDecorator = function () {
-  if (!this.hasPlugin("decorators")) {
-    this.unexpected();
-  }
+  this.expectPlugin("decorators");
   let node = this.startNode();
   this.next();
   node.expression = this.parseMaybeAssign();
@@ -580,12 +578,11 @@ pp.parseFunction = function (node, isStatement, allowExpressionBody, isAsync, op
   this.initFunction(node, isAsync);
 
   if (this.match(tt.star)) {
-    if (node.async && !this.hasPlugin("asyncGenerators")) {
-      this.unexpected();
-    } else {
-      node.generator = true;
-      this.next();
+    if (node.async) {
+      this.expectPlugin("asyncGenerators");
     }
+    node.generator = true;
+    this.next();
   }
 
   if (isStatement && !optionalId && !this.match(tt.name) && !this.match(tt._yield)) {
@@ -771,7 +768,7 @@ pp.parseClassBody = function (node) {
 
 pp.parseClassProperty = function (node) {
   if (this.match(tt.eq)) {
-    if (!this.hasPlugin("classProperties")) this.unexpected();
+    this.expectPlugin("classProperties");
     this.next();
     node.value = this.parseMaybeAssign();
   } else {

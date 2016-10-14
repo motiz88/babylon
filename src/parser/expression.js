@@ -391,7 +391,7 @@ pp.parseExprAtom = function (refShorthandDefaultPos) {
       return this.finishNode(node, "Super");
 
     case tt._import:
-      if (!this.hasPlugin("dynamicImport")) this.unexpected();
+      this.expectPlugin("dynamicImport");
 
       node = this.startNode();
       this.next();
@@ -435,18 +435,17 @@ pp.parseExprAtom = function (refShorthandDefaultPos) {
       return id;
 
     case tt._do:
-      if (this.hasPlugin("doExpressions")) {
-        let node = this.startNode();
-        this.next();
-        let oldInFunction = this.state.inFunction;
-        let oldLabels = this.state.labels;
-        this.state.labels = [];
-        this.state.inFunction = false;
-        node.body = this.parseBlock(false, true);
-        this.state.inFunction = oldInFunction;
-        this.state.labels = oldLabels;
-        return this.finishNode(node, "DoExpression");
-      }
+      this.expectPlugin("doExpressions");
+      let node = this.startNode();
+      this.next();
+      let oldInFunction = this.state.inFunction;
+      let oldLabels = this.state.labels;
+      this.state.labels = [];
+      this.state.inFunction = false;
+      node.body = this.parseBlock(false, true);
+      this.state.inFunction = oldInFunction;
+      this.state.labels = oldLabels;
+      return this.finishNode(node, "DoExpression");
 
     case tt.regexp:
       let value = this.state.value;
@@ -726,7 +725,8 @@ pp.parseObj = function (isPattern, refShorthandDefaultPos) {
       decorators = [];
     }
 
-    if (this.hasPlugin("objectRestSpread") && this.match(tt.ellipsis)) {
+    if (this.match(tt.ellipsis)) {
+      this.expectPlugin("objectRestSpread");
       prop = this.parseSpread();
       prop.type = isPattern ? "RestProperty" : "SpreadProperty";
       node.properties.push(prop);
