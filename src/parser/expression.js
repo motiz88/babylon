@@ -89,8 +89,13 @@ pp.parseExpression = function (noIn, refShorthandDefaultPos) {
 // operators like `+=`.
 
 pp.parseMaybeAssign = function (noIn, refShorthandDefaultPos, afterLeftParse, refNeedsArrowPos) {
+  let startPos = this.state.start;
+  let startLoc = this.state.startLoc;
+
   if (this.match(tt._yield) && this.state.inGenerator) {
-    return this.parseYield();
+    let left = this.parseYield();
+    if (afterLeftParse) left = afterLeftParse.call(this, left, startPos, startLoc);
+    return left;
   }
 
   let failOnShorthandAssign;
@@ -100,9 +105,6 @@ pp.parseMaybeAssign = function (noIn, refShorthandDefaultPos, afterLeftParse, re
     refShorthandDefaultPos = { start: 0 };
     failOnShorthandAssign = true;
   }
-
-  let startPos = this.state.start;
-  let startLoc = this.state.startLoc;
 
   if (this.match(tt.parenL) || this.match(tt.name)) {
     this.state.potentialArrowAt = this.state.start;
@@ -300,6 +302,9 @@ pp.parseSubscripts = function (base, startPos, startLoc, noCalls) {
       let node = this.startNodeAt(startPos, startLoc);
       node.callee = base;
       node.arguments = this.parseCallExpressionArguments(tt.parenR, possibleAsync);
+      if (node.callee.type === "Import" && node.arguments.length !== 1) {
+        this.raise(node.start, "import() requires exactly one argument");
+      }
       base = this.finishNode(node, "CallExpression");
 
       if (possibleAsync && this.shouldParseAsyncArrow()) {
@@ -384,6 +389,16 @@ pp.parseExprAtom = function (refShorthandDefaultPos) {
         this.raise(node.start, "super() outside of class constructor");
       }
       return this.finishNode(node, "Super");
+
+    case tt._import:
+      if (!this.hasPlugin("dynamicImport")) this.unexpected();
+
+      node = this.startNode();
+      this.next();
+      if (!this.match(tt.parenL)) {
+        this.unexpected(null, tt.parenL);
+      }
+      return this.finishNode(node, "Import");
 
     case tt._this:
       node = this.startNode();

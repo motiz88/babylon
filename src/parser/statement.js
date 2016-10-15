@@ -98,6 +98,8 @@ pp.parseStatement = function (declaration, topLevel) {
     case tt.semi: return this.parseEmptyStatement(node);
     case tt._export:
     case tt._import:
+      if (this.hasPlugin("dynamicImport") && this.lookahead().type === tt.parenL) break;
+
       if (!this.options.allowImportExportEverywhere) {
         if (!topLevel) {
           this.raise(this.state.start, "'import' and 'export' may only appear at the top level");
@@ -419,7 +421,7 @@ pp.parseEmptyStatement = function (node) {
 };
 
 pp.parseLabeledStatement = function (node, maybeName, expr) {
-  for (let label of (this.state.labels: Array<Object>)){
+  for (let label of (this.state.labels: Array<Object>)) {
     if (label.name === maybeName) {
       this.raise(expr.start, `Label '${maybeName}' is already declared`);
     }
