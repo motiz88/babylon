@@ -207,7 +207,7 @@ pp.flowParseTypeParameter = function () {
 
   let variance = this.flowParseVariance();
 
-  let ident = this.flowParseTypeAnnotatableIdentifier(false, false);
+  let ident = this.flowParseTypeAnnotatableIdentifier();
   node.name = ident.name;
   node.variance = variance;
   node.bound = ident.typeAnnotation;
@@ -706,26 +706,12 @@ pp.flowParseTypeAnnotation = function () {
   return this.finishNode(node, "TypeAnnotation");
 };
 
-pp.flowParseTypeAnnotatableIdentifier = function (requireTypeAnnotation, canBeOptionalParam) {
-
+pp.flowParseTypeAnnotatableIdentifier = function () {
   let ident = this.parseIdentifier();
-  let isOptionalParam = false;
-
-  if (canBeOptionalParam && this.eat(tt.question)) {
-    this.expect(tt.question);
-    isOptionalParam = true;
-  }
-
-  if (requireTypeAnnotation || this.match(tt.colon)) {
+  if (this.match(tt.colon)) {
     ident.typeAnnotation = this.flowParseTypeAnnotation();
     this.finishNode(ident, ident.type);
   }
-
-  if (isOptionalParam) {
-    ident.optional = true;
-    this.finishNode(ident, ident.type);
-  }
-
   return ident;
 };
 
