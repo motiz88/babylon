@@ -1196,6 +1196,7 @@ export default function (instance) {
             this.state = state;
             jsxError = err;
           } else {
+            // istanbul ignore next: no such error is expected
             throw err;
           }
         }
@@ -1250,6 +1251,7 @@ export default function (instance) {
           if (err instanceof SyntaxError) {
             this.state = state;
           } else {
+            // istanbul ignore next: no such error is expected
             throw err;
           }
         }
