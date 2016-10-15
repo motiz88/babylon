@@ -359,7 +359,7 @@ pp.flowParseObjectType = function (allowStatic, allowExact) {
     let optional = false;
     let startPos = this.state.start, startLoc = this.state.startLoc;
     node = this.startNode();
-    if (allowStatic && this.isContextual("static")) {
+    if (allowStatic && this.isContextual("static") && this.lookahead().type !== tt.colon) {
       this.next();
       isStatic = true;
     }
@@ -375,11 +375,7 @@ pp.flowParseObjectType = function (allowStatic, allowExact) {
       }
       nodeStart.callProperties.push(this.flowParseObjectTypeCallProperty(node, allowStatic));
     } else {
-      if (isStatic && this.match(tt.colon)) {
-        propertyKey = this.parseIdentifier();
-      } else {
-        propertyKey = this.flowParseObjectPropertyKey();
-      }
+      propertyKey = this.flowParseObjectPropertyKey();
       if (this.isRelational("<") || this.match(tt.parenL)) {
         // This is a method property
         if (variance) {
