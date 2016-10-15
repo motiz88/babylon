@@ -15,6 +15,8 @@ bootstrap-babel: clean
 
 test-babel:
 	BABEL_ENV=test npm run build
+	# in case babel ever switches to nyc: filter its config out of package.json
 	cd ./build/babel; \
+	jq "del(.nyc)" package.json > package.nonyc.json; \
+	mv -f package.nonyc.json package.json; \
 	../../node_modules/.bin/nyc --no-instrument --no-source-map --report-dir ../../coverage node_modules/mocha/bin/_mocha `scripts/_get-test-directories.sh` --opts test/mocha.opts
-
