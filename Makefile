@@ -14,7 +14,7 @@ bootstrap-babel: clean
 	find ./build/babel/packages -type d -name 'babylon' -prune -exec rm -rf '{}' \; -exec ln -s '../../../../../' '{}' \;
 
 test-babel:
-	npm run build
+	BABEL_ENV=test npm run build
 	cd ./build/babel; \
-	make test-only
+	../../node_modules/.bin/nyc --report-dir ../../coverage node_modules/mocha/bin/_mocha `scripts/_get-test-directories.sh` --opts test/mocha.opts;
 
