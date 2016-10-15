@@ -16,5 +16,5 @@ bootstrap-babel: clean
 test-babel:
 	BABEL_ENV=test npm run build
 	cd ./build/babel; \
-	../../node_modules/.bin/nyc --report-dir ../../coverage node_modules/mocha/bin/_mocha `scripts/_get-test-directories.sh` --opts test/mocha.opts;
+	../../node_modules/.bin/nyc --no-instrument --no-source-map --report-dir ../../coverage node_modules/mocha/bin/_mocha `scripts/_get-test-directories.sh` --opts test/mocha.opts
 
