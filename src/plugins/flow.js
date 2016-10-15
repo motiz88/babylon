@@ -811,6 +811,7 @@ export default function (instance) {
             refNeedsArrowPos.start = err.pos || this.state.start;
             return expr;
           } else {
+            // istanbul ignore next: no such error is expected
             throw err;
           }
         }
