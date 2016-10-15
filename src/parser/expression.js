@@ -436,7 +436,7 @@ pp.parseExprAtom = function (refShorthandDefaultPos) {
 
     case tt._do:
       this.expectPlugin("doExpressions");
-      let node = this.startNode();
+      node = this.startNode();
       this.next();
       let oldInFunction = this.state.inFunction;
       let oldLabels = this.state.labels;
