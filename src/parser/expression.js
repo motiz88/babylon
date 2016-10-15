@@ -45,6 +45,7 @@ pp.checkPropClash = function (prop, propHash) {
       name = String(key.value);
       break;
 
+    // istanbul ignore next: non-computed property keys are always one of the above
     default:
       return;
   }
