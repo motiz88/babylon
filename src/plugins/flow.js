@@ -227,6 +227,7 @@ pp.flowParseTypeParameterDeclaration = function () {
 
   this.state.inType = true;
 
+  // istanbul ignore else: this condition is already checked at all call sites
   if (this.isRelational("<") || this.match(tt.jsxTagStart)) {
     this.next();
   } else {
