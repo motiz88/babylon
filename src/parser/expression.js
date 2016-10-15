@@ -1025,6 +1025,7 @@ pp.parseIdentifier = function (liberal) {
 // Parses await expression inside async function.
 
 pp.parseAwait = function (node) {
+  // istanbul ignore next: this condition is checked at the call site so won't be hit here
   if (!this.state.inAsync) {
     this.unexpected();
   }
