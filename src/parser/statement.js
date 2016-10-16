@@ -667,7 +667,6 @@ pp.parseClassBody = function (node) {
 
     method.static = isMaybeStatic && !this.match(tt.parenL);
     if (method.static) {
-      if (isGenerator) this.unexpected();
       isGenerator = this.eat(tt.star);
       this.parsePropertyName(method);
     }
