@@ -226,9 +226,10 @@ pp.parseForStatement = function (node) {
   this.state.labels.push(loopLabel);
 
   let forAwait = false;
-  if (this.hasPlugin("asyncGenerators") && this.state.inAsync && this.isContextual("await")) {
-      forAwait = true;
-      this.next();
+  if (this.isContextual("await") && this.state.inAsync) {
+    this.expectPlugin("asyncGenerators");
+    forAwait = true;
+    this.next();
   }
   this.expect(tt.parenL);
 
@@ -685,7 +686,11 @@ pp.parseClassBody = function (node) {
 
     let isAsyncMethod = !this.match(tt.parenL) && !method.computed && method.key.type === "Identifier" && method.key.name === "async";
     if (isAsyncMethod) {
-      if (this.hasPlugin("asyncGenerators") && this.eat(tt.star)) isGenerator = true;
+      if (this.match(tt.star)) {
+        this.expectPlugin("asyncGenerators");
+        this.next();
+        isGenerator = true;
+      }
       isAsync = true;
       this.parsePropertyName(method);
     }
