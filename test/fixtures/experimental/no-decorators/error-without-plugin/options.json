@@ -1,0 +1,4 @@
+{
+  "throws": "This experimental syntax requires the decorators parser plugin. Check out babel-plugin-syntax-decorators, babel-plugin-transform-decorators or the parserOpts.decorators Babel option. (1:0)",
+  "plugins": []
+}

@@ -1,0 +1,4 @@
+{
+  "throws": "This experimental syntax requires the doExpressions parser plugin. Check out babel-plugin-syntax-do-expressions, babel-plugin-transform-do-expressions or the parserOpts.doExpressions Babel option. (1:1)",
+  "plugins": []
+}

@@ -1,0 +1,4 @@
+{
+  "throws": "This experimental syntax requires the dynamicImport parser plugin. Check out the parserOpts.dynamicImport Babel option. (1:8)",
+  "plugins": []
+}
