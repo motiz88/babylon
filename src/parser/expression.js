@@ -521,7 +521,7 @@ pp.parseExprAtom = function (refShorthandDefaultPos) {
 pp.parseFunctionExpression = function () {
   let node = this.startNode();
   let meta = this.parseIdentifier(true);
-  if (this.state.inGenerator && this.eat(tt.dot) && this.hasPlugin("functionSent")) {
+  if (this.state.inGenerator && this.eat(tt.dot)) {
     return this.parseMetaProperty(node, meta, "sent");
   } else {
     return this.parseFunction(node, false);
@@ -530,10 +530,20 @@ pp.parseFunctionExpression = function () {
 
 pp.parseMetaProperty = function (node, meta, propertyName) {
   node.meta = meta;
+
+  if (meta.name === "function" && propertyName === "sent") {
+    if (this.isContextual(propertyName)) {
+      this.expectPlugin("functionSent");
+    } else if (!this.hasPlugin("functionSent")) {
+      // They didn't actually say `function.sent`, just `function.`, so a simple error would be less confusing.
+      this.unexpected();
+    }
+  }
+
   node.property = this.parseIdentifier(true);
 
   if (node.property.name !== propertyName) {
-    this.raise(node.property.start, `The only valid meta property for new is ${meta.name}.${propertyName}`);
+    this.raise(node.property.start, `The only valid meta property for ${meta.name} is ${meta.name}.${propertyName}`);
   }
 
   return this.finishNode(node, "MetaProperty");
@@ -770,6 +780,7 @@ pp.parseObj = function (isPattern, refShorthandDefaultPos) {
           this.expectPlugin("asyncGenerators");
           this.next();
           isGenerator = true;
+        }
         this.parsePropertyName(prop);
       }
     } else {
