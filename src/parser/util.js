@@ -107,4 +107,5 @@ pp.expectPlugin = function (name) {
     this.unexpected(null, `This experimental syntax requires the ${name} parser plugin. `
       + `Check out${ leadingPointersOr }the parserOpts.${name} Babel option.`);
   }
+  return true;
 };
