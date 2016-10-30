@@ -23,7 +23,7 @@
     "cross-env": "^2.0.1",
     "kcheck": "^2.0.3",
     "lodash": "^4.15.0",
-    "nyc": "^8.1.0",
+    "nyc": "^8.4.0-candidate",
     "unicode-9.0.0": "~0.7.0"
   },
   "bin": {
