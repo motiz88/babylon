@@ -1,14 +1,24 @@
 {
   "presets": [
     ["es2015", {
-      "loose": true
+      "loose": true,
+      "modules": false
     }],
     "stage-0"
   ],
   "plugins": [
-    "transform-flow-strip-types"
+    "transform-flow-strip-types",
+    "external-helpers"
   ],
   "env": {
+    "watch": {
+      "presets": [
+        ["es2015", {
+          "loose": true
+        }],
+        "stage-0"
+      ]
+    },
     "test": {
       "plugins": ["istanbul"]
     }

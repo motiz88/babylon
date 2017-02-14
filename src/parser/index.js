@@ -3,6 +3,19 @@ import { getOptions } from "../options";
 import Tokenizer from "../tokenizer";
 
 export const plugins = {};
+const frozenDeprecatedWildcardPluginList = [
+  "jsx",
+  "doExpressions",
+  "objectRestSpread",
+  "decorators",
+  "classProperties",
+  "exportExtensions",
+  "asyncGenerators",
+  "functionBind",
+  "functionSent",
+  "dynamicImport",
+  "flow"
+];
 
 export default class Parser extends Tokenizer {
   constructor(options: Object, input: string) {
@@ -11,7 +24,6 @@ export default class Parser extends Tokenizer {
 
     this.options = options;
     this.inModule = this.options.sourceType === "module";
-    this.isReservedWord = reservedWords[6];
     this.input = input;
     this.plugins = this.loadPlugins(this.options.plugins);
     this.filename = options.sourceFilename;
@@ -22,28 +34,64 @@ export default class Parser extends Tokenizer {
     }
   }
 
+  isReservedWord(word: string): boolean {
+    if (word === "await") {
+      return this.inModule;
+    } else {
+      return reservedWords[6](word);
+    }
+  }
+
   hasPlugin(name: string): boolean {
-    return !!(this.plugins["*"] || this.plugins[name]);
+    if (this.plugins["*"] && frozenDeprecatedWildcardPluginList.indexOf(name) > -1) {
+      return true;
+    }
+
+    return !!this.plugins[name];
   }
 
   extend(name: string, f: Function) {
     this[name] = f(this[name]);
   }
 
-  loadPlugins(plugins: Array<string>): Object {
-    let pluginMap = {};
+  loadAllPlugins() {
+    // ensure flow plugin loads last, also ensure estree is not loaded with *
+    const pluginNames = Object.keys(plugins).filter((name) => name !== "flow" && name !== "estree");
+    pluginNames.push("flow");
 
-    if (plugins.indexOf("flow") >= 0) {
-      // ensure flow plugin loads last
-      plugins = plugins.filter((plugin) => plugin !== "flow");
-      plugins.push("flow");
+    pluginNames.forEach((name) => {
+      const plugin = plugins[name];
+      if (plugin) plugin(this);
+    });
+  }
+
+  loadPlugins(pluginList: Array<string>): { [key: string]: boolean } {
+    // TODO: Deprecate "*" option in next major version of Babylon
+    if (pluginList.indexOf("*") >= 0) {
+      this.loadAllPlugins();
+
+      return { "*": true };
     }
 
-    for (let name of plugins) {
+    const pluginMap = {};
+
+    if (pluginList.indexOf("flow") >= 0) {
+      // ensure flow plugin loads last
+      pluginList = pluginList.filter((plugin) => plugin !== "flow");
+      pluginList.push("flow");
+    }
+
+    if (pluginList.indexOf("estree") >= 0) {
+      // ensure estree plugin loads first
+      pluginList = pluginList.filter((plugin) => plugin !== "estree");
+      pluginList.unshift("estree");
+    }
+
+    for (const name of pluginList) {
       if (!pluginMap[name]) {
         pluginMap[name] = true;
 
-        let plugin = exports.plugins[name];
+        const plugin = plugins[name];
         if (plugin) plugin(this);
       }
     }
@@ -58,8 +106,8 @@ export default class Parser extends Tokenizer {
       body: Array<Object>
     }
   } {
-    let file = this.startNode();
-    let program = this.startNode();
+    const file = this.startNode();
+    const program = this.startNode();
     this.nextToken();
     return this.parseTopLevel(file, program);
   }

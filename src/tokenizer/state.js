@@ -1,5 +1,5 @@
 import type { TokContext } from "./context";
-import type { Token } from "./index";
+import type { TokenType } from "./types";
 import { Position } from "../util/location";
 import { types as ct } from "./context";
 import { types as tt } from "./types";
@@ -12,7 +12,14 @@ export default class State {
 
     this.potentialArrowAt = -1;
 
-    this.inMethod = this.inFunction = this.inGenerator = this.inAsync = false;
+    this.inMethod =
+      this.inFunction =
+      this.inGenerator =
+      this.inAsync =
+      this.inPropertyName =
+      this.inType =
+      this.noAnonFunctionType =
+        false;
 
     this.labels = [];
 
@@ -27,7 +34,7 @@ export default class State {
     this.commentStack     = [];
 
     this.pos = this.lineStart = 0;
-    this.curLine = 1;
+    this.curLine = options.startLine;
 
     this.type = tt.eof;
     this.value = null;
@@ -61,6 +68,9 @@ export default class State {
   inFunction: boolean;
   inGenerator: boolean;
   inMethod: boolean;
+  inAsync: boolean;
+  inType: boolean;
+  inPropertyName: boolean;
 
   // Labels in scope.
   labels: Array<Object>;
@@ -86,7 +96,7 @@ export default class State {
 
   // Properties of the current token:
   // Its type
-  type: Token;
+  type: TokenType;
 
   // For tokens that include more information than their type, the value
   value: any;
@@ -130,8 +140,8 @@ export default class State {
   }
 
   clone(skipArrays?) {
-    let state = new State;
-    for (let key in this) {
+    const state = new State;
+    for (const key in this) {
       let val = this[key];
 
       if ((!skipArrays || key === "context") && Array.isArray(val)) {
